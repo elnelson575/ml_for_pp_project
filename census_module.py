@@ -86,22 +86,6 @@ features_list = [
 "B22003_002E",
 "B22003_005E",
 
-"C24050_001E",
-"C24050_002E",
-"C24050_003E",
-"C24050_004E",
-"C24050_005E",
-"C24050_006E",
-"C24050_007E",
-"C24050_008E",
-"C24050_009E",
-"C24050_010E",
-"C24050_011E",
-"C24050_012E",
-"C24050_013E",
-"C24050_014E",
-"C24050_015E",
-
 "B17020_001E",
 "B17020_002E",
 "B17020_010E",
@@ -125,13 +109,17 @@ features_list = [
 ]
 
 def pull_raw_census_data(features):
-
     '''
+    Pulls raw census data from API from year 2018 ACS5, requires list of variables to pull
+    
     Input:
     features (list): list of census table names to pull from census data
 
     Output:
     acs_data (pandas df): dataframe with all the variables
+
+    Example:
+    primary_data = pull_raw_census_data(features_list)
 
     '''
 
@@ -144,4 +132,33 @@ def pull_raw_census_data(features):
     return acs_data
 
 
-primary_data = pull_raw_census_data(features_list)
+
+def rename_to_detailed(acs_data, features):
+    '''
+    This function gets the detailed names of census variables and renames the acs table variables
+    accordingly.
+
+    Inputs:
+    acs_data (pandas dataframe): ACS data with table name variables as columns
+    features (list): list of ACS table names
+
+    Outputs:
+    acs_renamed (pandas dataframe): ACS data with column names replaced with detailed variable descriptiosn from Census
+
+    Example: test = rename_to_detailed(primary_data, features_list)
+    '''
+    features1 = [feature for feature in features if feature != "GEO_ID" and not feature.startswith("C")]
+    census_info = censusdata.censusvar('acs5', 2018, features1)
+
+    rename_dict = {}
+    for key, value in census_info.items():
+        title = value[0].replace(" ", "_")
+        subtype = value[1].replace("!!", "_")
+        subtype = subtype.replace(" ", "_")
+        rename_dict[key] = title + "__" + subtype
+    
+    
+    acs_renamed = acs_data.rename(columns = rename_dict)
+
+    return acs_renamed
+
