@@ -1,4 +1,3 @@
-censusdata.censusvar('acs1', 2015, ['B28009D_001E'])
 import censusdata
 import pandas as pd
 import geopandas as gpd
@@ -162,3 +161,46 @@ def rename_to_detailed(acs_data, features):
 
     return acs_renamed
 
+def make_percents(acs_renamed):
+
+    # Percent non-citizen
+    acs_renamed['Percent_NonCitizen'] = acs_renamed['''NATIVITY_AND_CITIZENSHIP_STATUS_IN_THE_UNITED_STATES__Estimate_Total_Not_a_U.S._citizen'''] / acs_renamed['NATIVITY_AND_CITIZENSHIP_STATUS_IN_THE_UNITED_STATES__Estimate_Total']
+
+    # Percent speak English Poorly
+    acs_renamed['Percent_SpeakEngl_Poorly'] = acs_renamed['''PLACE_OF_BIRTH_BY_LANGUAGE_SPOKEN_AT_HOME_AND_ABILITY_TO_SPEAK_ENGLISH_IN_THE_UNITED_STATES__Estimate_Total_Speak_other_languages_Speak_English_less_than_"very_well"''']
+    + acs_renamed['''PLACE_OF_BIRTH_BY_LANGUAGE_SPOKEN_AT_HOME_AND_ABILITY_TO_SPEAK_ENGLISH_IN_THE_UNITED_STATES__Estimate_Total_Speak_Spanish_Speak_English_less_than_"very_well"'''] / acs_renamed['''PLACE_OF_BIRTH_BY_LANGUAGE_SPOKEN_AT_HOME_AND_ABILITY_TO_SPEAK_ENGLISH_IN_THE_UNITED_STATES__Estimate_Total''']
+
+    # Educational attainment
+    acs_renamed['Percent_less_than_HS'] = acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total_Less_than_high_school_graduate''']/ acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total''']
+
+    acs_renamed['Percent_HS'] = acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total_High_school_graduate_(includes_equivalency)'''] / acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total''']
+
+    acs_renamed['Percent_SomeCollege'] = acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total_Some_college_or_associate's_degree'''] / acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total''']
+
+    acs_renamed['Percent_Bach'] = acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total_Bachelor's_degree'''] / acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total''']
+
+    acs_renamed['Percent_Grad'] = acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total_Graduate_or_professional_degree'''] / acs_renamed['''PLACE_OF_BIRTH_BY_EDUCATIONAL_ATTAINMENT_IN_THE_UNITED_STATES__Estimate_Total''']
+
+    #No vehicals
+    acs_renamed['Percent_No_vehicals'] = acs_renamed['''SEX_OF_WORKERS_BY_VEHICLES_AVAILABLE__Estimate_Total_No_vehicle_available'''] / acs_renamed['''SEX_OF_WORKERS_BY_VEHICLES_AVAILABLE__Estimate_Total''']
+  
+    #SNAP and Benefits
+
+    acs_renamed['Percent_Received_SNAP'] = acs_renamed['''RECEIPT_OF_FOOD_STAMPS/SNAP_IN_THE_PAST_12_MONTHS_BY_POVERTY_STATUS_IN_THE_PAST_12_MONTHS_FOR_HOUSEHOLDS__Estimate_Total_Household_received_Food_Stamps/SNAP_in_the_past_12_months''']/ acs_renamed['''RECEIPT_OF_FOOD_STAMPS/SNAP_IN_THE_PAST_12_MONTHS_BY_POVERTY_STATUS_IN_THE_PAST_12_MONTHS_FOR_HOUSEHOLDS__Estimate_Total''']
+
+    #Work Status
+
+    acs_renamed['Percent_Men_Usually_Fulltime_Employed'] = acs_renamed['''SEX_BY_WORK_STATUS_IN_THE_PAST_12_MONTHS_BY_USUAL_HOURS_WORKED_PER_WEEK_IN_THE_PAST_12_MONTHS_BY_WEEKS_WORKED_IN_THE_PAST_12_MONTHS_FOR_THE_POPULATION_16_TO_64_YEARS__Estimate_Total_Male_Worked_in_the_past_12_months_Usually_worked_35_or_more_hours_per_week'''] / acs_renamed['''SEX_BY_WORK_STATUS_IN_THE_PAST_12_MONTHS_BY_USUAL_HOURS_WORKED_PER_WEEK_IN_THE_PAST_12_MONTHS_BY_WEEKS_WORKED_IN_THE_PAST_12_MONTHS_FOR_THE_POPULATION_16_TO_64_YEARS__Estimate_Total_Male''']
+
+    acs_renamed['Percent_Women_Usually_Fulltime_Employed'] = acs_renamed['''SEX_BY_WORK_STATUS_IN_THE_PAST_12_MONTHS_BY_USUAL_HOURS_WORKED_PER_WEEK_IN_THE_PAST_12_MONTHS_BY_WEEKS_WORKED_IN_THE_PAST_12_MONTHS_FOR_THE_POPULATION_16_TO_64_YEARS__Estimate_Total_Female_Worked_in_the_past_12_months_Usually_worked_35_or_more_hours_per_week'''] / acs_renamed['''SEX_BY_WORK_STATUS_IN_THE_PAST_12_MONTHS_BY_USUAL_HOURS_WORKED_PER_WEEK_IN_THE_PAST_12_MONTHS_BY_WEEKS_WORKED_IN_THE_PAST_12_MONTHS_FOR_THE_POPULATION_16_TO_64_YEARS__Estimate_Total_Female''']
+
+    return acs_renamed
+
+def rename_and_filter(acs_renamed):
+    acs_renamed = acs_renamed.rename(columns={"MEDIAN_HOUSEHOLD_INCOME_IN_THE_PAST_12_MONTHS_(IN_2018_INFLATION-ADJUSTED_DOLLARS)__Estimate_Median_household_income_in_the_past_12_months_(in_2018_inflation-adjusted_dollars)" : "Median_Income", "MEDIAN_AGE_BY_SEX__Estimate_Median_age_--_Total" : "Median_Age"})
+
+    filter_cols = [col for col in acs_renamed.columns if col.startswith('Percent') or col.startswith('geo') or col.startswith('Median')]
+
+    acs_filtered = acs_renamed[filter_cols]
+
+    return acs_filtered
