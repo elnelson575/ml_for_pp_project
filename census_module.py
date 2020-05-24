@@ -1,4 +1,6 @@
+censusdata.censusvar('acs1', 2015, ['B28009D_001E'])
 import censusdata
+import pandas as pd
 import geopandas as gpd
 
 # Candidate features:
@@ -57,30 +59,89 @@ B23022_049E - women didn't work in last 12 months
 
 '''
 
+features_list = [
+"GEO_ID", 
+"B19013_001E",
+"B01002_001E",
+"B05001_001E",
+"B05001_006E",
+"B06007_001E",
+"B06007_008E",
+"B06007_005E",
 
-# Note: IL FIPS = 17, Cook County FIPS = 031, Table = B02001_001E (Total Population)
-acs_data = censusdata.download("acs5", 2015, censusdata.censusgeo(
-    [("state", "17"), ("county", "031"), ("block group", "*")]), 
-                               ["B02001_001E", "B02001_002E", "B02001_003E", "B02001_004E", "B02010_001E", "B19013_001E", "GEO_ID"])
-# Total pop, #White alone, #black alone, # Indigenous alone, #Indigenous in combination with other, # Median income
+"B06009_001E",
+"B06009_002E",
+"B06009_003E",
+"B06009_004E",
+"B06009_005E",
+"B06009_006E",
 
-# Download Census block boundaries for Chicago 
-census_gdf = gpd.read_file("https://data.cityofchicago.org/resource/bt9m-d2mf.geojson?$limit=9999999")
 
-# Extract 12-digit FIPS code from both datasets 
-census_gdf["geo_12"] = census_gdf["geoid10"].map(lambda x: str(x)[:12])
-acs_example["geo_12"] = acs_example["GEO_ID"].map(lambda x: str(x)[-12:])
+"B08014_001E",
+"B08014_002E",
+"B08014_003E",
+"B08014_004E",
 
-# Merge ACS data with Census block boundaries 
-# Assumes the crime df was converted to a geopandas df (crime_gdf)  
-merged_gdf = (gpd.GeoDataFrame(acs_example.merge(census_gdf, on="geo_12", how="inner"), 
-                               crs=crime_gdf.crs))
+"B22003_001E",
+"B22003_002E",
+"B22003_005E",
 
-# Limit columns 
-limited_gdf = merged_gdf[["B02001_001E", "GEO_ID", "geometry"]].drop_duplicates()
+"C24050_001E",
+"C24050_002E",
+"C24050_003E",
+"C24050_004E",
+"C24050_005E",
+"C24050_006E",
+"C24050_007E",
+"C24050_008E",
+"C24050_009E",
+"C24050_010E",
+"C24050_011E",
+"C24050_012E",
+"C24050_013E",
+"C24050_014E",
+"C24050_015E",
 
-# Plot geopandas dataframe with total population by Census block
-limited_gdf.plot()
+"B17020_001E",
+"B17020_002E",
+"B17020_010E",
 
-# Print a sample of rows 
-limited_gdf.sample(3)
+"B23022_001E",
+"B23022_002E",
+"B23022_003E",
+"B23022_004E",
+"B23022_025E",
+"B23022_026E",
+"B23022_027E",
+"B23022_028E",
+"B23022_049E",
+
+"B28010_001E",
+"B28010_002E",
+"B28011_001E",
+"B28011_002E",
+"B28011_007E",
+"B28011_008E"
+]
+
+def pull_raw_census_data(features):
+
+    '''
+    Input:
+    features (list): list of census table names to pull from census data
+
+    Output:
+    acs_data (pandas df): dataframe with all the variables
+
+    '''
+
+    # Note: IL FIPS = 17, Cook County FIPS = 031, Table = B02001_001E (Total Population)
+    acs_data = censusdata.download("acs5", 2018, censusdata.censusgeo(
+        [("state", "17"), ("county", "031"), ("block group", "*")]), features)
+    # Extract 12-digit FIPS code
+    acs_data["geo_12"] = acs_data["GEO_ID"].map(lambda x: str(x)[-12:])
+
+    return acs_data
+
+
+primary_data = pull_raw_census_data(features_list)
